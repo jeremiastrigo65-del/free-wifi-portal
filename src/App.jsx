@@ -46,7 +46,7 @@ export default function App() {
       setResult({
         type: "success",
         message:
-          "Registration successful! This demo does not activate real mobile data or unlock internet access.",
+          "Registration successful! Enjoy your free2gb FREE WIFI ",
       });
 
       setName("");
