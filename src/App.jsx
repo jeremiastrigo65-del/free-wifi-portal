@@ -9,14 +9,14 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
-  async function handleSubmit(event) {
-    event.preventDefault();
+  async function handleSubmit(e) {
+    e.preventDefault();
     setResult(null);
 
     if (!consent) {
       setResult({
         type: "error",
-        message: "Please agree to the demo data-use notice."
+        message: "Please agree to the demo registration terms.",
       });
       return;
     }
@@ -24,37 +24,29 @@ export default function App() {
     setLoading(true);
 
     try {
-     
-const response = await fetch("/api/register", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ name, email })
-});
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+        }),
+      });
 
-const text = await response.text();
+      const data = await response.json();
 
-let data;
-
-try {
-  data = text ? JSON.parse(text) : {};
-} catch {
-  throw new Error(
-    `Server returned invalid JSON (HTTP ${response.status}). Check your backend terminal.`
-  );
-}
-
-if (!response.ok) {
-  throw new Error(data.message || `Request failed (HTTP ${response.status}).`);
-}
-
-if (!data.success) {
-  throw new Error(data.message || "Registration was not confirmed.");
-}
+      if (!response.ok || data.success === false) {
+        throw new Error(
+          data.message || "Registration failed. Please try again."
+        );
+      }
 
       setResult({
         type: "success",
         message:
-          "Registration saved! Router authorization is still required to enable internet access."
+          "Registration successful! This demo does not activate real mobile data or unlock internet access.",
       });
 
       setName("");
@@ -63,90 +55,166 @@ if (!data.success) {
     } catch (error) {
       setResult({
         type: "error",
-        message: error.message || "Cannot connect to the server."
+        message:
+          error.message ||
+          "Unable to register right now. Please try again.",
       });
     } finally {
       setLoading(false);
     }
   }
 
+  function goToPortal() {
+    document.getElementById("registration")?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }
+
   return (
-    <main className="portal">
-      <section className="portal-card">
-        <div className="wifi-icon" aria-hidden="true">⌁</div>
+    <main className="portal-page">
+      <header className="topbar">
+        <a className="brand" href="/">
+          <span className="brand-icon">⌁</span>
+          <span>Campus<span className="brand-accent">Connect</span></span>
+        </a>
 
-        <p className="eyebrow">WELCOME TO</p>
-        <h1>Campus Free Wi-Fi</h1>
-        <p className="subtitle">
-          Connect, learn, and browse. Complete the form to register
-          for our classroom hotspot demonstration.
-        </p>
-
-        <div className="network-status">
-          <span className="status-dot" />
-          Hotspot registration portal
+        <div className="online-status">
+          <span className="status-dot"></span>
+          
         </div>
+      </header>
 
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="name">Full name</label>
-          <input
-            id="name"
-            type="text"
-            placeholder="Enter your full name"
-            autoComplete="name"
-            minLength={2}
-            maxLength={100}
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-
-          <label htmlFor="email">Email address</label>
-          <input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            autoComplete="email"
-            maxLength={255}
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-
-          <label className="consent">
-            <input
-              type="checkbox"
-              checked={consent}
-              onChange={(e) => setConsent(e.target.checked)}
-            />
-            <span>
-              I understand my name and email will be stored in the
-              demonstration database for this project.
+      <section className="portal-layout">
+        <div className="portal-card" id="registration">
+          <div className="portal-card-top">
+            <div className="wifi-icon">⌁</div>
+            <span className="mini-status">
+              <span className="status-dot"></span>
+             connecting
             </span>
-          </label>
-
-          <button type="submit" disabled={loading}>
-            {loading ? "Registering..." : "Register for Free Wi-Fi"}
-          </button>
-        </form>
-
-        {result && (
-          <div
-            className={`message ${result.type}`}
-            role="status"
-            aria-live="polite"
-          >
-            {result.message}
           </div>
-        )}
 
-        <p className="privacy-note">
-          Classroom demonstration only. Do not submit sensitive
-          information. Registration alone does not unlock internet access.
-        </p>
+          <p className="eyebrow">WELCOME TO FREE WIFI</p>
 
-        <footer>BSIT Project · Wi-Fi Captive Portal</footer>
+          <h1>
+            Campus Free
+            <span> Wi-Fi</span>
+          </h1>
+
+          <p className="portal-description">
+            Register below to continue to the campus Wi-Fi portal.
+          </p>
+
+          <div className="offer-card">
+            <div className="offer-copy">
+              <span className="offer-label">SPECIAL OFFER</span>
+              <h2>Claim your free 2GB!</h2>
+              <p>
+                Complete the registration form to try our campus portal.
+              </p>
+            </div>
+
+            <div className="offer-amount">
+              <strong>2GB</strong>
+              <span>FREE*</span>
+            </div>
+
+            <div className="offer-decoration offer-decoration-one"></div>
+            <div className="offer-decoration offer-decoration-two"></div>
+          </div>
+
+          <div className="form-heading">
+            <h2>Register to get started</h2>
+            <p>Enter your details below.</p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <label htmlFor="fullName">Full name</label>
+            <input
+              id="fullName"
+              type="text"
+              placeholder="Enter your full name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoComplete="name"
+              required
+              maxLength={100}
+            />
+
+            <label htmlFor="email">Email address</label>
+            <input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
+              required
+              maxLength={254}
+            />
+
+            <label className="consent-row">
+              <input
+                type="checkbox"
+                checked={consent}
+                onChange={(e) => setConsent(e.target.checked)}
+                required
+              />
+              <span>
+                I agree to the demo registration terms and understand that
+                this portal does not provide actual mobile data.
+              </span>
+            </label>
+
+            {result && (
+              <div
+                className={`result-message ${result.type}`}
+                role="status"
+              >
+                {result.message}
+              </div>
+            )}
+
+            <button
+              className="register-button"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? "Registering..." : "Register for Free 2GB Wi-Fi"}
+              {!loading && <span>→</span>}
+            </button>
+          </form>
+
+          <div className="portal-footer">
+            <span>🔒 registration</span>
+            <span>Campus Connect</span>
+          </div>
+        </div>
       </section>
+
+      <footer className="page-footer">
+        <p>
+          *The 2GB offer is for demonstration purposes only. Registration
+          does not provide actual mobile data or guarantee internet access.
+        </p>
+      </footer>
+
+      <button
+        className="floating-claim"
+        type="button"
+        onClick={goToPortal}
+        aria-label="Claim your free 2GB demo offer"
+      >
+        <span className="floating-emoji">🎁</span>
+
+        <span className="floating-copy">
+          <small>YOUR OFFER</small>
+          <strong>Claim Your Free 2GB</strong>
+        </span>
+
+        <span className="floating-arrow">→</span>
+      </button>
     </main>
   );
 }
